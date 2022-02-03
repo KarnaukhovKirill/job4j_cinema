@@ -1,0 +1,15 @@
+language: java
+jdk:
+  - openjdk15
+
+sudo: false
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email:
+    recipients:
+      - pound.of.uranium@gmail.com
+    on_success: never
+    on_failure: always
