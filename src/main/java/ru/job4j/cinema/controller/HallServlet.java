@@ -40,7 +40,7 @@ public class HallServlet extends HttpServlet {
             for (Ticket ticket : hall.get(i)) {
                 String available = ticket.isAvailable() ? "" : "disabled= \"true";
                 sb.append("\"<td><input type=\"radio\" name=\"place\" value=\"" + ticket.getRow() + ticket.getCell()
-                        +"\" title=\"Ряд " + ticket.getRow() + ", Место " + ticket.getCell() + "\""
+                        + "\" title=\"Ряд " + ticket.getRow() + ", Место " + ticket.getCell() + "\""
                         + available + " id=\"" + ticket.getId() + "\""
                         + "\"> Ряд " + ticket.getRow() + ", Место" + ticket.getCell() + "</td>\""
                 );

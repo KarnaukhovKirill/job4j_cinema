@@ -13,7 +13,7 @@ public class AppContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
-        Gson GSON = new GsonBuilder().create();
-        context.setAttribute("GSON", GSON);
+        Gson gson = new GsonBuilder().create();
+        context.setAttribute("GSON", gson);
     }
 }

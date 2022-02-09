@@ -4,23 +4,23 @@ import java.util.Objects;
 
 public class Ticket {
     private int id;
-    private int session_id;
+    private int sessionId;
     private int row;
     private int cell;
     private boolean available;
     private int accountId;
 
-    public Ticket(int id, int session_id, int row, int cell, boolean available, int accountId) {
+    public Ticket(int id, int sessionId, int row, int cell, boolean available, int accountId) {
         this.id = id;
-        this.session_id = session_id;
+        this.sessionId = sessionId;
         this.row = row;
         this.cell = cell;
         this.available = available;
         this.accountId = accountId;
     }
 
-    public Ticket(int session_id, int row, int cell, boolean available, int accountId) {
-        this.session_id = session_id;
+    public Ticket(int sessionId, int row, int cell, boolean available, int accountId) {
+        this.sessionId = sessionId;
         this.row = row;
         this.cell = cell;
         this.available = available;
@@ -35,12 +35,12 @@ public class Ticket {
         this.id = id;
     }
 
-    public int getSession_id() {
-        return session_id;
+    public int getSessionId() {
+        return sessionId;
     }
 
-    public void setSession_id(int session_id) {
-        this.session_id = session_id;
+    public void setSessionId(int sessionId) {
+        this.sessionId = sessionId;
     }
 
     public int getRow() {

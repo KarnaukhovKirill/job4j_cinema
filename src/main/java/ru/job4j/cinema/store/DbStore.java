@@ -79,8 +79,8 @@ public class DbStore {
 
     private void update(Account account) {
         try (Connection cn = pool.getConnection();
-             PreparedStatement ps = cn.prepareStatement("UPDATE account SET username = ?, email = ?, phone = ? " +
-                                                                                                    "WHERE id = ?",
+             PreparedStatement ps = cn.prepareStatement("UPDATE account SET username = ?, email = ?, phone = ? "
+                                                                                                   + "WHERE id = ?",
                      PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, account.getUsername());
             ps.setString(2, account.getEmail());
@@ -201,10 +201,10 @@ public class DbStore {
     private void create(Ticket ticket) {
         try (Connection cn = pool.getConnection();
              PreparedStatement ps = cn.prepareStatement(
-                     "INSERT INTO ticket(session_id, row_ticket, cell_ticket, available, account_id)" +
-                             " VALUES (?, ?, ?, ?, ?)",
+                     "INSERT INTO ticket(session_id, row_ticket, cell_ticket, available, account_id)"
+                             + " VALUES (?, ?, ?, ?, ?)",
                      PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, ticket.getSession_id());
+            ps.setInt(1, ticket.getSessionId());
             ps.setInt(2, ticket.getRow());
             ps.setInt(3, ticket.getCell());
             ps.setBoolean(4, ticket.isAvailable());
@@ -222,11 +222,11 @@ public class DbStore {
 
     private void update(Ticket ticket) {
         try (Connection cn = pool.getConnection();
-             PreparedStatement ps = cn.prepareStatement("UPDATE ticket " +
-                             "SET session_id = ?, row_ticket = ?, cell_ticket = ?, available = ?, account_id = ? " +
-                             "WHERE id = ?",
+             PreparedStatement ps = cn.prepareStatement("UPDATE ticket "
+                             + "SET session_id = ?, row_ticket = ?, cell_ticket = ?, available = ?, account_id = ? "
+                             + "WHERE id = ?",
                      PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, ticket.getSession_id());
+            ps.setInt(1, ticket.getSessionId());
             ps.setInt(2, ticket.getRow());
             ps.setInt(3, ticket.getCell());
             ps.setBoolean(4, ticket.isAvailable());
