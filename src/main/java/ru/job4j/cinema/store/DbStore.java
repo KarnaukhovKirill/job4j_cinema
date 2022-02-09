@@ -4,7 +4,8 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.job4j.cinema.model.Account;
-
+import ru.job4j.cinema.model.DefaultAccounts;
+import ru.job4j.cinema.model.Ticket;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.sql.Connection;
@@ -12,11 +13,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
 
-public class DbStore implements Store {
+public class DbStore {
     private static final Logger LOG = LoggerFactory.getLogger(DbStore.class.getName());
     private final BasicDataSource pool = new BasicDataSource();
 
-    public static Store instOf() {
+    public static DbStore instOf() {
         return Lazy.INST;
     }
 
@@ -46,11 +47,11 @@ public class DbStore implements Store {
     }
 
     private static final class Lazy {
-        private static final Store INST = new DbStore();
+        private static final DbStore INST = new DbStore();
     }
 
-    @Override
-    public void save(Account account) {
+
+    public void saveAccount(Account account) {
         if (account.getId() == 0) {
             create(account);
         } else {
@@ -91,8 +92,7 @@ public class DbStore implements Store {
         }
     }
 
-    @Override
-    public boolean delAccount(int id) {
+    public boolean deleteAccount(int id) {
         boolean rsl = false;
         try (Connection cn = pool.getConnection();
              PreparedStatement ps = cn.prepareStatement("DELETE FROM account WHERE id = ?")) {
@@ -104,18 +104,17 @@ public class DbStore implements Store {
         return rsl;
     }
 
-    @Override
-    public void delAllAccount() {
+    public void delAllAccounts() {
         try (Connection cn = pool.getConnection();
-             PreparedStatement ps = cn.prepareStatement("DELETE FROM account")) {
+             PreparedStatement ps = cn.prepareStatement("DELETE FROM account where id != ?")) {
+            ps.setInt(1, DefaultAccounts.ADMIN.getId());
             ps.execute();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
     }
 
-    @Override
-    public Collection<Account> findAllAccount() {
+    public Collection<Account> findAllAccounts() {
         List<Account> accounts = new ArrayList<>();
         try (Connection cn = pool.getConnection();
              PreparedStatement ps =  cn.prepareStatement("SELECT * FROM account")
@@ -134,7 +133,6 @@ public class DbStore implements Store {
         return accounts;
     }
 
-    @Override
     public Account findAccountById(int id) {
         try (Connection cn = pool.getConnection();
         PreparedStatement ps = cn.prepareStatement("SELECT * FROM account WHERE id = ?")
@@ -154,8 +152,7 @@ public class DbStore implements Store {
         return null;
     }
 
-    @Override
-    public Account findAccountByEmail(String email) {
+    public Account findByEmail(String email) {
         try (Connection cn = pool.getConnection();
              PreparedStatement ps = cn.prepareStatement("SELECT * FROM account WHERE email = ?")
         ) {
@@ -172,5 +169,164 @@ public class DbStore implements Store {
             LOG.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    public Account findAccountByPhone(String phone) {
+        try (Connection cn = pool.getConnection();
+             PreparedStatement ps = cn.prepareStatement("SELECT * FROM account WHERE phone = ?")
+        ) {
+            ps.setString(1, phone);
+            try (ResultSet it = ps.executeQuery()) {
+                if (it.next()) {
+                    return new Account(it.getInt("id"),
+                            it.getString("username"),
+                            it.getString("email"),
+                            it.getString("phone"));
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public void saveTicket(Ticket ticket) {
+        if (ticket.getId() == 0) {
+            create(ticket);
+        } else {
+            update(ticket);
+        }
+    }
+
+    private void create(Ticket ticket) {
+        try (Connection cn = pool.getConnection();
+             PreparedStatement ps = cn.prepareStatement(
+                     "INSERT INTO ticket(session_id, row_ticket, cell_ticket, available, account_id)" +
+                             " VALUES (?, ?, ?, ?, ?)",
+                     PreparedStatement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, ticket.getSession_id());
+            ps.setInt(2, ticket.getRow());
+            ps.setInt(3, ticket.getCell());
+            ps.setBoolean(4, ticket.isAvailable());
+            ps.setInt(5, ticket.getAccountId());
+            ps.execute();
+            try (ResultSet id = ps.getGeneratedKeys()) {
+                if (id.next()) {
+                    ticket.setId(id.getInt("id"));
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void update(Ticket ticket) {
+        try (Connection cn = pool.getConnection();
+             PreparedStatement ps = cn.prepareStatement("UPDATE ticket " +
+                             "SET session_id = ?, row_ticket = ?, cell_ticket = ?, available = ?, account_id = ? " +
+                             "WHERE id = ?",
+                     PreparedStatement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, ticket.getSession_id());
+            ps.setInt(2, ticket.getRow());
+            ps.setInt(3, ticket.getCell());
+            ps.setBoolean(4, ticket.isAvailable());
+            ps.setInt(5, ticket.getAccountId());
+            ps.setInt(6, ticket.getId());
+            ps.executeUpdate();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public boolean deleteTicket(int id) {
+        boolean rsl = false;
+        try (Connection cn = pool.getConnection();
+             PreparedStatement ps = cn.prepareStatement("DELETE FROM ticket WHERE id = ?")) {
+            ps.setInt(1, id);
+            rsl = ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return rsl;
+    }
+
+    public void delAllTickets() {
+        try (Connection cn = pool.getConnection();
+             PreparedStatement ps = cn.prepareStatement("DELETE FROM ticket")) {
+            ps.execute();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public Collection<Ticket> findAllTickets() {
+        List<Ticket> tickets = new ArrayList<>();
+        try (Connection cn = pool.getConnection();
+             PreparedStatement ps =  cn.prepareStatement("SELECT * FROM ticket "
+                                            + "ORDER BY row_ticket, cell_ticket")
+        ) {
+            try (ResultSet it = ps.executeQuery()) {
+                while (it.next()) {
+                    tickets.add(new Ticket(
+                            it.getInt("id"),
+                            it.getInt("session_id"),
+                            it.getInt("row_ticket"),
+                            it.getInt("cell_ticket"),
+                            it.getBoolean("available"),
+                            it.getInt("account_id")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return tickets;
+    }
+
+    public Ticket findTicketById(int id) {
+        try (Connection cn = pool.getConnection();
+             PreparedStatement ps = cn.prepareStatement("SELECT * FROM ticket WHERE id = ?")
+        ) {
+            ps.setInt(1, id);
+            try (ResultSet it = ps.executeQuery()) {
+                if (it.next()) {
+                    return new Ticket(it.getInt("id"),
+                            it.getInt("session_id"),
+                            it.getInt("row_ticket"),
+                            it.getInt("cell_ticket"),
+                            it.getBoolean("available"),
+                            it.getInt("account_id"));
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public void wipeDb() {
+        try (Connection cn = pool.getConnection();
+             PreparedStatement statement = cn.prepareStatement(
+                "drop table if exists account cascade; "
+                        + "create table if not exists account(id SERIAL PRIMARY KEY,\n"
+                        + "  username varchar not null,\n"
+                        + "  email varchar not null unique,\n"
+                        + "  phone varchar not null unique); "
+
+                        + "drop table if exists ticket;"
+                        + "CREATE TABLE IF NOT EXISTS ticket (\n"
+                        + "id SERIAL PRIMARY KEY,\n"
+                        + "session_id int not null,\n"
+                        + "row_ticket int,\n"
+                        + "cell_ticket int,\n"
+                        + "available boolean default true,\n"
+                        + "account_id int not null,\n"
+                        + "constraint account_id_fk foreign key (account_id) references account(id),"
+                        + "constraint unique_ticket UNIQUE (session_id, row_ticket, cell_ticket));"
+        )) {
+            statement.execute();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 }

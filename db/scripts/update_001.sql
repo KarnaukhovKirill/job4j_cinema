@@ -10,6 +10,8 @@ CREATE TABLE ticket (
     session_id int not null,
     row_ticket int,
     cell_ticket int,
-    account_id int not null REFERENCES account(id),
+    available boolean default true,
+    account_id int not null,
+    constraint account_id_fk foreign key (account_id) references account(id),
     constraint unique_ticket UNIQUE (session_id, row_ticket, cell_ticket)
 );

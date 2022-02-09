@@ -16,11 +16,70 @@
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script>
+    function $_GET(key) {
+        var p = window.location.search;
+        p = p.match(new RegExp(key + '=([^&=]+)'));
+        return p ? p[1] : false;
+    }
+
+    $(document).ready ( function(){
+        let place = $_GET('place');
+        let row = place.charAt(0);
+        let cell = place.charAt(1);
+        $("#headerYourPlace").append("Вы выбрали " + row + "-й ряд " + cell + "-е место. Сумма: 500 рублей. " +
+            "Заполните форму ниже для регистрации");
+    });
+
+    function validate() {
+        let result = true;
+        let answer = '';
+        let elements = [$("#username"), $("#phone")];
+        for (let i = 0; i < elements.length; i++) {
+            if (elements[i].val() === '') {
+                answer += "Пожалуйста, заполните " + elements[i].attr("placeholder") + "\n";
+                result = false;
+            }
+        }
+        if (!result) {
+            alert(answer);
+        }
+        return result;
+    }
+
+    function pay() {
+        document.getElementById("headerYourPlace").innerHTML = "";
+        if (validate()) {
+            $.ajax({
+                type: 'POST',
+                url: "./payment.do",
+                data: {place : $_GET('place'),
+                    session: $_GET('session'),
+                    id: $_GET('id'),
+                    username : $('#username').val(),
+                    email : $('#email').val(),
+                    phone : $('#phone').val()}
+            }).done(function (data) {
+                alert("done");
+                $('#headerYourPlace').append(data);
+            }).fail(function (err) {
+                alert(err.toString());
+                console.log(err)
+            })
+        }
+    }
+</script>
 
 <div class="container">
     <div class="row pt-3">
-        <h3>
-            Вы выбрали ряд 1 место 1, Сумма : 500 рублей.
+        <h3 id="headerYourPlace">
+        </h3>
+    </div>
+    <div class="row pt-3">
+        <h3 id="response">
+
         </h3>
     </div>
     <div class="row">
@@ -33,7 +92,12 @@
                 <label for="phone">Номер телефона</label>
                 <input type="text" class="form-control" id="phone" placeholder="Номер телефона">
             </div>
-            <button type="button" class="btn btn-success">Оплатить</button>
+            <div class="form-group">
+                <label for="email">Эл.почта</label>
+                <input type="text" class="form-control" id="email" placeholder="Эл.почта">
+            </div>
+            <button type="button" class="btn btn-success" onclick="pay();">Оплатить</button>
+
         </form>
     </div>
 </div>
