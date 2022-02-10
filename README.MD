@@ -18,6 +18,9 @@
 о клиенте, сеансе и забронированном месте.
 ![alt text](https://github.com/KarnaukhovKirill/job4j_cinema/blob/main/src/img/5_reg_done.png)
 
+Если место было занято во время бронирования, отобразиться уведомление.
+![alt text](https://github.com/KarnaukhovKirill/job4j_cinema/blob/main/src/img/5.1_placeNotAvailable.png)
+
 После резерва, место становиться недоступным другим пользователям.
 ![alt text](https://github.com/KarnaukhovKirill/job4j_cinema/blob/main/src/img/6_final.png)
 

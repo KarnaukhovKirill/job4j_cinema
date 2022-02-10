@@ -50,11 +50,13 @@
     }
 
     function pay() {
-        document.getElementById("headerYourPlace").innerHTML = "";
+        var el = document.getElementById("headerYourPlace");
+        el.innerHTML = "";
         if (validate()) {
             $.ajax({
                 type: 'POST',
                 url: "./payment.do",
+                dataType : 'html',
                 data: {place : $_GET('place'),
                     session: $_GET('session'),
                     id: $_GET('id'),
@@ -62,8 +64,7 @@
                     email : $('#email').val(),
                     phone : $('#phone').val()}
             }).done(function (data) {
-                alert("done");
-                $('#headerYourPlace').append(data);
+                el.innerHTML = data;
             }).fail(function (err) {
                 alert(err.toString());
                 console.log(err)
