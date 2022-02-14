@@ -57,7 +57,7 @@
                 type: 'POST',
                 url: "./payment.do",
                 dataType : 'html',
-                data: {place : $_GET('place'),
+                data: { place : $_GET('place'),
                     session: $_GET('session'),
                     id: $_GET('id'),
                     username : $('#username').val(),
@@ -98,7 +98,6 @@
                 <input type="text" class="form-control" id="email" placeholder="Эл.почта">
             </div>
             <button type="button" class="btn btn-success" onclick="pay();">Оплатить</button>
-
         </form>
     </div>
 </div>

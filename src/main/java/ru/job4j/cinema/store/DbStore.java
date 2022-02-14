@@ -11,10 +11,11 @@ import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.*;
 
 public class DbStore {
-    private static final Logger LOG = LoggerFactory.getLogger(DbStore.class.getName());
+    public static final Logger LOG = LoggerFactory.getLogger(DbStore.class.getName());
     private final BasicDataSource pool = new BasicDataSource();
 
     public static DbStore instOf() {
@@ -190,15 +191,18 @@ public class DbStore {
         return null;
     }
 
-    public void saveTicket(Ticket ticket) {
+    public boolean saveTicket(Ticket ticket) throws SQLIntegrityConstraintViolationException {
+        boolean rsl;
         if (ticket.getId() == 0) {
-            create(ticket);
+            rsl = create(ticket);
         } else {
-            update(ticket);
+            rsl = update(ticket);
         }
+        return rsl;
     }
 
-    private void create(Ticket ticket) {
+    private boolean create(Ticket ticket) throws SQLIntegrityConstraintViolationException {
+        boolean rsl = false;
         try (Connection cn = pool.getConnection();
              PreparedStatement ps = cn.prepareStatement(
                      "INSERT INTO ticket(session_id, row_ticket, cell_ticket, available, account_id)"
@@ -209,18 +213,22 @@ public class DbStore {
             ps.setInt(3, ticket.getCell());
             ps.setBoolean(4, ticket.isAvailable());
             ps.setInt(5, ticket.getAccountId());
-            ps.execute();
+            rsl = ps.executeUpdate() > 0;
             try (ResultSet id = ps.getGeneratedKeys()) {
                 if (id.next()) {
                     ticket.setId(id.getInt("id"));
                 }
             }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw e;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+        return rsl;
     }
 
-    private void update(Ticket ticket) {
+    private boolean update(Ticket ticket) {
+        boolean rsl = false;
         try (Connection cn = pool.getConnection();
              PreparedStatement ps = cn.prepareStatement("UPDATE ticket "
                              + "SET session_id = ?, row_ticket = ?, cell_ticket = ?, available = ?, account_id = ? "
@@ -232,10 +240,11 @@ public class DbStore {
             ps.setBoolean(4, ticket.isAvailable());
             ps.setInt(5, ticket.getAccountId());
             ps.setInt(6, ticket.getId());
-            ps.executeUpdate();
+            rsl = ps.executeUpdate() > 0;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+        return rsl;
     }
 
     public boolean deleteTicket(int id) {

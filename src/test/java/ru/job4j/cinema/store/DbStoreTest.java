@@ -3,11 +3,10 @@ package ru.job4j.cinema.store;
 import org.junit.*;
 import ru.job4j.cinema.model.Account;
 import ru.job4j.cinema.model.Ticket;
-
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Collection;
 import java.util.List;
-
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -85,7 +84,7 @@ public class DbStoreTest {
     }
 
     @Test
-    public void whenSaveTicket() {
+    public void whenSaveTicket() throws SQLIntegrityConstraintViolationException {
         Account account = new Account(0, "new account", "mail", "1");
         store.saveAccount(account);
         Ticket ticket = new Ticket(0,1, 1, 1, true, account.getId());
@@ -95,7 +94,7 @@ public class DbStoreTest {
     }
 
     @Test
-    public void whenUpdateTicket() {
+    public void whenUpdateTicket() throws SQLIntegrityConstraintViolationException {
         Account account = new Account(0, "new account", "mail", "1");
         store.saveAccount(account);
         Ticket ticket = new Ticket(0,1, 1, 2, true, account.getId());
@@ -106,7 +105,7 @@ public class DbStoreTest {
     }
 
     @Test
-    public void whenDeleteTicket() {
+    public void whenDeleteTicket() throws SQLIntegrityConstraintViolationException {
         Account account = new Account(0, "new account", "mail", "1");
         store.saveAccount(account);
         Ticket ticket = new Ticket(0,1, 1, 3, true, account.getId());
@@ -115,7 +114,7 @@ public class DbStoreTest {
     }
 
     @Test
-    public void whenDeleteAll() {
+    public void whenDeleteAll() throws SQLIntegrityConstraintViolationException {
         Account account = new Account(0, "new account", "mail", "1");
         store.saveAccount(account);
         Ticket ticket2 = new Ticket(0,1, 1, 6, true, account.getId());
@@ -128,7 +127,7 @@ public class DbStoreTest {
     }
 
     @Test
-    public void testFindAll() {
+    public void testFindAll() throws SQLIntegrityConstraintViolationException {
         Account account = new Account(0, "new account", "mail", "1");
         store.saveAccount(account);
         Ticket ticket = new Ticket(0,0, 1, 7, true, account.getId());
@@ -141,7 +140,7 @@ public class DbStoreTest {
     }
 
     @Test
-    public void testFindById() {
+    public void testFindById() throws SQLIntegrityConstraintViolationException {
         Account account = new Account(0, "new account", "mail", "1");
         store.saveAccount(account);
         Ticket ticket = new Ticket(0,1, 2, 2, true, account.getId());
@@ -149,4 +148,13 @@ public class DbStoreTest {
         assertThat(store.findTicketById(ticket.getId()), is(ticket));
     }
 
+    @Test(expected = SQLIntegrityConstraintViolationException.class)
+    public void whenSaveSameTicket() throws SQLIntegrityConstraintViolationException {
+        Account account = new Account(0, "new account", "mail", "1");
+        store.saveAccount(account);
+        Ticket ticket = new Ticket(0, 0, 4, 4, true, account.getId());
+        Ticket ticket2 = new Ticket(0, 0, 4, 4, false, account.getId());
+        store.saveTicket(ticket);
+        store.saveTicket(ticket2);
+    }
 }

@@ -23,33 +23,9 @@ public class HallServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         var gson = (Gson) getServletContext().getAttribute("GSON");
         Collection<Ticket> tickets = DbStore.instOf().findAllTickets();
-        HashMap<Integer, List<Ticket>> hall = new HashMap<>();
-        for (Ticket ticket : tickets) {
-            var rowNumber = ticket.getRow();
-            if (hall.containsKey(rowNumber)) {
-                hall.get(rowNumber).add(ticket);
-            } else {
-                List<Ticket> list = new ArrayList<>();
-                list.add(ticket);
-                hall.put(rowNumber, list);
-            }
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Integer i : hall.keySet()) {
-            sb.append("<tbody><tr><th>" + i + "</th>");
-            for (Ticket ticket : hall.get(i)) {
-                String available = ticket.isAvailable() ? "" : "disabled= \"true";
-                sb.append("\"<td><input type=\"radio\" name=\"place\" value=\"" + ticket.getRow() + ticket.getCell()
-                        + "\" title=\"Ряд " + ticket.getRow() + ", Место " + ticket.getCell() + "\""
-                        + available + " id=\"" + ticket.getId() + "\""
-                        + "\"> Ряд " + ticket.getRow() + ", Место" + ticket.getCell() + "</td>\""
-                );
-            }
-            sb.append("</tr></tbody>");
-        }
         resp.setContentType("application/json; charset=utf-8");
         OutputStream outputStream = resp.getOutputStream();
-        String json = gson.toJson(sb);
+        String json = gson.toJson(tickets);
         outputStream.write(json.getBytes(StandardCharsets.UTF_8));
         outputStream.flush();
 
